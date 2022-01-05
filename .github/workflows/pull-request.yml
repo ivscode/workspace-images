@@ -53,9 +53,11 @@ jobs:
         run: |
           docker run -it --detach --publish 5000:5000 --volume ~/registry:/var/lib/registry registry:2
 
-      - name: Remote retag images
+      - name: Push sample image
         run: |
-          docker pull localhost:5000/workspace-images:full
+          docker pull nginx
+          docker tag nginx:latest localhost:5000/workspace-images:full
+          docker push localhost:5000/workspace-images:full
 
       - name: Remote retag images
         run: |
