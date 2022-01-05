@@ -55,15 +55,18 @@ jobs:
 
       - name: Remote retag images
         run: |
-          set +x
+          docker pull localhost:5000/workspace-images:full
+
+      - name: Remote retag images
+        run: |
           REGISTRY_NAME="http://localhost:5000"
           REPOSITORY_OLD=workspace-images
           REPOSITORY_NEW=workspace-full
           CONTENT_TYPE="application/vnd.docker.distribution.manifest.v2+json"
           TAG_OLD=full
           TAG_NEW=latest
-
           MANIFEST=$(curl -H "Accept: ${CONTENT_TYPE}" "${REGISTRY_NAME}/v2/${REPOSITORY_OLD}/manifests/${TAG_OLD}")
+          echo "${MANIFEST}"
           curl -X PUT -H "Content-Type: ${CONTENT_TYPE}" -d "${MANIFEST}" "${REGISTRY_NAME}/v2/${REPOSITORY_NEW}/manifests/${TAG_NEW}"
 
       - name: Pull retagged images
