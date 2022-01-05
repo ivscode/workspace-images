@@ -11,20 +11,30 @@ jobs:
         with:
           repository: gitpod-io/workspace-images
 
-      - name: 🔧 Setup pre-commit
+      - name: 🔆 Debug
         run: |
-          sudo apt-get install python3-pip shellcheck
-          curl -sSL https://github.com/mvdan/sh/releases/download/v3.4.2/shfmt_v3.4.2_linux_amd64 -o shfmt
-          sudo mv shfmt /usr/local/bin/shfmt && sudo chmod +x /usr/local/bin/shfmt
-          sudo pip3 install pre-commit
+          sudo snap install yq
+          cd dazzle-rewrite
+          tags=$(cat dazzle.yaml | yq .combiner.combinations[].name -r)
+          for tag in $tags
+          do
+            echo $tag
+          done
 
-      - name: 🤓 Run pre-commit
-        run: |
-          pre-commit run --all-files
+      # - name: 🔧 Setup pre-commit
+      #   run: |
+      #     sudo apt-get install python3-pip shellcheck
+      #     curl -sSL https://github.com/mvdan/sh/releases/download/v3.4.2/shfmt_v3.4.2_linux_amd64 -o shfmt
+      #     sudo mv shfmt /usr/local/bin/shfmt && sudo chmod +x /usr/local/bin/shfmt
+      #     sudo pip3 install pre-commit
 
-      - name: 🔆 Install dazzle
-        run: |
-          curl -sSL https://github.com/gitpod-io/dazzle/releases/download/v0.1.6/dazzle_0.1.6_Linux_x86_64.tar.gz | sudo tar -xvz -C /usr/local/bin
+      # - name: 🤓 Run pre-commit
+      #   run: |
+      #     pre-commit run --all-files
+
+      # - name: 🔆 Install dazzle
+      #   run: |
+      #     curl -sSL https://github.com/gitpod-io/dazzle/releases/download/v0.1.6/dazzle_0.1.6_Linux_x86_64.tar.gz | sudo tar -xvz -C /usr/local/bin
 
       - name: 🏗️ Setup buildkit
         run: |
@@ -43,12 +53,54 @@ jobs:
         run: |
           docker run -it --detach --publish 5000:5000 --volume ~/registry:/var/lib/registry registry:2
 
-      - name: 🔨 Dazzle build
+      - name: Remote retag images
         run: |
-          cd dazzle-rewrite
-          dazzle build localhost:5000/workspace-images
+          REGISTRY_NAME="http://localhost:5000"
+          REPOSITORY_OLD=workspace-images
+          REPOSITORY_NEW=workspace-full
+          CONTENT_TYPE="application/vnd.docker.distribution.manifest.v2+json"
+          TAG_OLD=full
+          TAG_NEW=latest
 
-      - name: 🖇️ Dazzle combine
+          MANIFEST=$(curl -H "Accept: ${CONTENT_TYPE}" "${REGISTRY_NAME}/v2/${REPOSITORY_OLD}/manifests/${TAG_OLD}")
+          curl -X PUT -H "Content-Type: ${CONTENT_TYPE}" -d "${MANIFEST}" "${REGISTRY_NAME}/v2/${REPOSITORY_NEW}/manifests/${TAG_NEW}"
+
+      - name: Pull retagged images
         run: |
-          cd dazzle-rewrite
-          dazzle combine localhost:5000/workspace-images --all
+          docker pull localhost:5000/workspace-full:latest
+
+      # - name: 🔨 Dazzle build
+      #   run: |
+      #     cd dazzle-rewrite
+      #     dazzle build localhost:5000/workspace-images
+
+      # - name: 🖇️ Dazzle combine
+      #   run: |
+      #     cd dazzle-rewrite
+      #     dazzle combine localhost:5000/workspace-images --all
+
+      # - name: Set up Cloud SDK
+      #   uses: google-github-actions/setup-gcloud@master
+      #   with:
+      #     version: 366.0.0
+
+      # - name: Authenticate to Google Cloud
+      #   id: "auth"
+      #   uses: "google-github-actions/auth@v0.4.3"
+      #   with:
+      #     token_format: "access_token"
+      #     workload_identity_provider: ${{env.WORKLOAD_IDENTITY_POOL_ID}}
+      #     service_account: ${{env.IAM_SERVICE_ACCOUNT}}
+
+      # - name: Configuring container registry credentials
+      #   run: |
+      #     sudo skopeo login -u oauth2accesstoken --password=${{ steps.auth.outputs.access_token }} https://${{env.IMAGE_REPO}}
+
+      # - name: 🐳 Copy images to Artifact Registry
+      #   run: |
+      #     sudo skopeo copy \
+      #       --src-tls-verify=false \
+      #       --registries-conf=.github/registries.conf \
+      #       --src yaml \
+      #       --dest docker \
+      #       .github/sync-containers.yml ${{env.IMAGE_REPO}}/workspace-base-images/workspace-base-images/workspace-image
