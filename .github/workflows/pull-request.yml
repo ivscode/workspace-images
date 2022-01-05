@@ -55,6 +55,7 @@ jobs:
 
       - name: Remote retag images
         run: |
+          set +x
           REGISTRY_NAME="http://localhost:5000"
           REPOSITORY_OLD=workspace-images
           REPOSITORY_NEW=workspace-full
