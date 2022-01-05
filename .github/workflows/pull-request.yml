@@ -15,7 +15,7 @@ jobs:
         run: |
           sudo snap install yq
           cd dazzle-rewrite
-          tags=$(cat dazzle.yaml | yq .combiner.combinations[].name -r)
+          tags=$(yq e .combiner.combinations[].name dazzle.yaml)
           for tag in $tags
           do
             echo $tag
