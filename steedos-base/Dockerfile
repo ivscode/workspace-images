@@ -54,3 +54,6 @@ ENV TRIGGER_REBUILD=1
 RUN mkdir $HOME/.cache/steedos -p
 COPY package.json $HOME/.cache/steedos
 RUN cd $HOME/.cache/steedos && yarn install && cd $HOME && rm -rf $HOME/.cache/steedos
+
+# Install steedos command
+RUN npm i steedos-cli --global
