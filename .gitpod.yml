@@ -1,6 +1,10 @@
 image: gitpod/workspace-full
 
 tasks:
+  - init: |
+      sudo apt-get update
+      sudo apt-get install awscli -y
+      exit
   - command: docker
 
 vscode:
