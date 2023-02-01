@@ -47,7 +47,7 @@ RUN curl -fsSL https://pkgs.tailscale.com/stable/ubuntu/focal.gpg | sudo apt-key
 
 # Install node
 USER gitpod
-ENV NODE_VERSION=14.19.3
+ENV NODE_VERSION=14.21.2
 ENV TRIGGER_REBUILD=2
 RUN curl -fsSL https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.0/install.sh | PROFILE=/dev/null bash \
     && bash -c ". .nvm/nvm.sh \
@@ -78,7 +78,7 @@ ENV PATH=$PATH:/home/gitpod/.nvm/versions/node/v${NODE_VERSION}/bin
 
 # Install steedos command
 USER gitpod
-RUN npm i steedos-cli@2.2.37 --global
+RUN npm i steedos-cli --global
 
 # Install steedos npm packages for cache
 # USER gitpod
