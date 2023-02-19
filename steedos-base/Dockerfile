@@ -49,11 +49,13 @@ RUN curl -fsSL https://pkgs.tailscale.com/stable/ubuntu/focal.gpg | sudo apt-key
 USER gitpod
 ENV NODE_VERSION=14.21.2
 ENV TRIGGER_REBUILD=2
-RUN curl -fsSL https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.0/install.sh | PROFILE=/dev/null bash \
-    && bash -c ". .nvm/nvm.sh \
+RUN curl -fsSL https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.0/install.sh | bash
+RUN export NVM_DIR="$HOME/.nvm" && \
+    [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh" && \
+    [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion" \
         && nvm install $NODE_VERSION \
         && nvm alias default $NODE_VERSION \
-        && npm install -g typescript yarn node-gyp"
+        && npm install -g typescript yarn node-gyp
 ENV PATH=$PATH:/home/gitpod/.nvm/versions/node/v${NODE_VERSION}/bin
 
 
